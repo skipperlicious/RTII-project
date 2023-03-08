@@ -5,29 +5,25 @@ void setup() {
   pinMode(D3, INPUT);
   pinMode(D2, INPUT);
   Serial.begin(9600);
+
+  int stateIR = digitalRead(D3);
+  int stateIR2 = digitalRead(D2);
 }
 
 void loop() {
-  int stateIR = digitalRead(D2);
-  int stateIR2 = digitalRead(D3);
-
+  int stateIR = digitalRead(D3);
     if(stateIR == 0) {
-      Serial.println("LEFT"); 
-      delay(1000);
-      } 
-      //Debugging
-      /*else {
-      Serial.println("RELEASED-L");
-      }*/
+       Serial.println("CLICKED"); 
+      delay(1000);} 
+      else {
+      Serial.println("RELEASED"); }
 
-    if(stateIR2 == 0) {
-      Serial.println("RIGHT"); 
-      delay(1000);
-      } 
-      //Debugging
-      /*else {
-      Serial.println("RELEASED-R");
-      }*/
+  /*if(stateIR2 == 0) {
+    int stateIR2 = digitalRead(D2);
+      Serial.println("CLICKED"); 
+      delay(1000);} 
+      else {
+      Serial.println("RELEASED"); }*/
 }
 
 
