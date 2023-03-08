@@ -1,3 +1,38 @@
+#include <ResponsiveAnalogRead.h>
+
+// I2C device class (I2Cdev) demonstration Arduino sketch for MPU9150
+// 1/4/2013 original by Jeff Rowberg <jeff@rowberg.net> at https://github.com/jrowberg/i2cdevlib
+//          modified by Aaron Weiss <aaron@sparkfun.com>
+//
+// Changelog:
+//     2011-10-07 - initial release
+//     2013-1-4 - added raw magnetometer output
+
+/* ============================================
+I2Cdev device library code is placed under the MIT license
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+===============================================
+*/
+
+// Arduino Wire library is required if I2Cdev I2CDEV_ARDUINO_WIRE implementation
+// is used in I2Cdev.h
 #include "Wire.h"
 
 // I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
@@ -10,43 +45,18 @@
 // AD0 low = 0x68 (default for InvenSense evaluation board)
 // AD0 high = 0x69
 MPU6050 accelgyro;
-I2Cdev   I2C_M;
-
-uint8_t buffer_m[6];
-
 
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
-int16_t   mx, my, mz;
+int16_t mx, my, mz;
+
+float percent_tilt;
 
 
+ResponsiveAnalogRead analog4(A4, true);
 
-float heading;
-float tiltheading;
-
-float Axyz[3];
-float Gxyz[3];
-float Mxyz[3];
-
-
-#define sample_num_mdate  5000
-
-volatile float mx_sample[3];
-volatile float my_sample[3];
-volatile float mz_sample[3];
-
-static float mx_centre = 0;
-static float my_centre = 0;
-static float mz_centre = 0;
-
-volatile int mx_max = 0;
-volatile int my_max = 0;
-volatile int mz_max = 0;
-
-volatile int mx_min = 0;
-volatile int my_min = 0;
-volatile int mz_min = 0;
-
+#define LED_PIN 13
+bool blinkState = false;
 
 void setup() {
     // join I2C bus (I2Cdev library doesn't do this automatically)
@@ -55,10 +65,9 @@ void setup() {
     // initialize serial communication
     // (38400 chosen because it works as well at 8MHz as it does at 16MHz, but
     // it's really up to you depending on your project)
-    Serial.begin(9600);
-    
+    Serial.begin(38400);
+
     // initialize device
-    while(!Serial);
     Serial.println("Initializing I2C devices...");
     accelgyro.initialize();
 
@@ -66,213 +75,42 @@ void setup() {
     Serial.println("Testing device connections...");
     Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
 
-    delay(1000);
-    Serial.println("     ");
-
-    Mxyz_init_calibrated();
-
+    analog4.setAnalogResolution(16000);
+    analog4.setSnapMultiplier(0.0001);
+    
+    // configure Arduino LED for
+    pinMode(LED_PIN, OUTPUT);
 }
 
 void loop() {
 
-    getAccel_Data();
-    getGyro_Data();
-    getCompassDate_calibrated(); // compass data has been calibrated here
-    getHeading();				//before we use this function we should run 'getCompassDate_calibrated()' frist, so that we can get calibrated data ,then we can get correct angle .
-    getTiltHeading();
+    calcTilt();
 
-    Serial.println("calibration parameter: ");
-    Serial.print(mx_centre);
-    Serial.print("         ");
-    Serial.print(my_centre);
-    Serial.print("         ");
-    Serial.println(mz_centre);
-    Serial.println("     ");
-
-
-    Serial.println("Acceleration(g) of X,Y,Z:");
-    Serial.print(Axyz[0]);
-    Serial.print(",");
-    Serial.print(Axyz[1]);
-    Serial.print(",");
-    Serial.println(Axyz[2]);
-    Serial.println("Gyro(degress/s) of X,Y,Z:");
-    Serial.print(Gxyz[0]);
-    Serial.print(",");
-    Serial.print(Gxyz[1]);
-    Serial.print(",");
-    Serial.println(Gxyz[2]);
-    /*
-    Serial.println("Compass Value of X,Y,Z:");
-    Serial.print(Mxyz[0]);
-    Serial.print(",");
-    Serial.print(Mxyz[1]);
-    Serial.print(",");
-    Serial.println(Mxyz[2]);
-    */
-    Serial.println("The clockwise angle between the magnetic north and X-Axis:");
-    Serial.print(heading);
-    Serial.println(" ");
-    Serial.println("The clockwise angle between the magnetic north and the projection of the positive X-Axis in the horizontal plane:");
-    Serial.println(tiltheading);
-    Serial.println("   ");
-    Serial.println("   ");
-    Serial.println("   ");
-
-
-
-    delay(1000);
-
-
-
-
-
-}
-
-
-void getHeading(void) {
-    heading = 180 * atan2(Mxyz[1], Mxyz[0]) / PI;
-    if (heading < 0) {
-        heading += 360;
-    }
-}
-
-void getTiltHeading(void) {
-    float pitch = asin(-Axyz[0]);
-    float roll = asin(Axyz[1] / cos(pitch));
-
-    float xh = Mxyz[0] * cos(pitch) + Mxyz[2] * sin(pitch);
-    float yh = Mxyz[0] * sin(roll) * sin(pitch) + Mxyz[1] * cos(roll) - Mxyz[2] * sin(roll) * cos(pitch);
-    float zh = -Mxyz[0] * cos(roll) * sin(pitch) + Mxyz[1] * sin(roll) + Mxyz[2] * cos(roll) * cos(pitch);
-    tiltheading = 180 * atan2(yh, xh) / PI;
-    if (yh < 0) {
-        tiltheading += 360;
-    }
-}
-
-
-
-void Mxyz_init_calibrated() {
-
-    Serial.println(F("Before using 9DOF,we need to calibrate the compass frist,It will takes about 2 minutes."));
-    Serial.print("  ");
-    Serial.println(F("During  calibratting ,you should rotate and turn the 9DOF all the time within 2 minutes."));
-    Serial.print("  ");
-    Serial.println(F("If you are ready ,please sent a command data 'ready' to start sample and calibrate."));
-    while (!Serial.find("ready"));
-    Serial.println("  ");
-    Serial.println("ready");
-    Serial.println("Sample starting......");
-    Serial.println("waiting ......");
-
-    get_calibration_Data();
-
-    Serial.println("     ");
-    Serial.println("compass calibration parameter ");
-    Serial.print(mx_centre);
-    Serial.print("     ");
-    Serial.print(my_centre);
-    Serial.print("     ");
-    Serial.println(mz_centre);
-    Serial.println("    ");
-}
-
-
-void get_calibration_Data() {
-    for (int i = 0; i < sample_num_mdate; i++) {
-        get_one_sample_date_mxyz();
-        /*
-            Serial.print(mx_sample[2]);
-            Serial.print(" ");
-            Serial.print(my_sample[2]);                            //you can see the sample data here .
-            Serial.print(" ");
-            Serial.println(mz_sample[2]);
-        */
-
-
-
-        if (mx_sample[2] >= mx_sample[1]) {
-            mx_sample[1] = mx_sample[2];
-        }
-        if (my_sample[2] >= my_sample[1]) {
-            my_sample[1] = my_sample[2];    //find max value
-        }
-        if (mz_sample[2] >= mz_sample[1]) {
-            mz_sample[1] = mz_sample[2];
-        }
-
-        if (mx_sample[2] <= mx_sample[0]) {
-            mx_sample[0] = mx_sample[2];
-        }
-        if (my_sample[2] <= my_sample[0]) {
-            my_sample[0] = my_sample[2];    //find min value
-        }
-        if (mz_sample[2] <= mz_sample[0]) {
-            mz_sample[0] = mz_sample[2];
-        }
-
-    }
-
-    mx_max = mx_sample[1];
-    my_max = my_sample[1];
-    mz_max = mz_sample[1];
-
-    mx_min = mx_sample[0];
-    my_min = my_sample[0];
-    mz_min = mz_sample[0];
-
-
-
-    mx_centre = (mx_max + mx_min) / 2;
-    my_centre = (my_max + my_min) / 2;
-    mz_centre = (mz_max + mz_min) / 2;
-
-}
-
-
-
-
-
-
-void get_one_sample_date_mxyz() {
-    getCompass_Data();
-    mx_sample[2] = Mxyz[0];
-    my_sample[2] = Mxyz[1];
-    mz_sample[2] = Mxyz[2];
-}
-
-
-void getAccel_Data(void) {
+    // read raw accel/gyro measurements from device
     accelgyro.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &mx, &my, &mz);
-    Axyz[0] = (double) ax / 16384;
-    Axyz[1] = (double) ay / 16384;
-    Axyz[2] = (double) az / 16384;
+
+    // read from your ADC
+    // update the ResponsiveAnalogRead object every loop
+    int reading = ax;
+    analog4.update(reading);
+    Serial.println(analog4.getValue());
+    Serial.println("DEBUG");
+    // blink LED to indicate activity
+    blinkState = !blinkState;
+    digitalWrite(LED_PIN, blinkState);
 }
 
-void getGyro_Data(void) {
-    accelgyro.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &mx, &my, &mz);
-    Gxyz[0] = (double) gx * 250 / 32768;
-    Gxyz[1] = (double) gy * 250 / 32768;
-    Gxyz[2] = (double) gz * 250 / 32768;
+void calcTilt() 
+{
+    //float func(float percent_tilt);
+    if(ax < 180.0)
+    {
+        percent_tilt = 50.0 / 180.0 * ax;
+        //Serial.println(percent_tilt);
+    } 
+    else
+    {
+        percent_tilt = 50.0 / 180.0 * ax - 100;
+    }
 }
 
-void getCompass_Data(void) {
-    I2C_M.writeByte(MPU9150_RA_MAG_ADDRESS, 0x0A, 0x01); //enable the magnetometer
-    delay(10);
-    I2C_M.readBytes(MPU9150_RA_MAG_ADDRESS, MPU9150_RA_MAG_XOUT_L, 6, buffer_m);
-
-    mx = ((int16_t)(buffer_m[1]) << 8) | buffer_m[0] ;
-    my = ((int16_t)(buffer_m[3]) << 8) | buffer_m[2] ;
-    mz = ((int16_t)(buffer_m[5]) << 8) | buffer_m[4] ;
-
-    Mxyz[0] = (double) mx * 1200 / 4096;
-    Mxyz[1] = (double) my * 1200 / 4096;
-    Mxyz[2] = (double) mz * 1200 / 4096;
-}
-
-void getCompassDate_calibrated() {
-    getCompass_Data();
-    Mxyz[0] = Mxyz[0] - mx_centre;
-    Mxyz[1] = Mxyz[1] - my_centre;
-    Mxyz[2] = Mxyz[2] - mz_centre;
-}
