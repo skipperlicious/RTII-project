@@ -25,7 +25,9 @@ while programRunning:
     if ser.in_waiting > 0:  # Check if there is new data available on the serial port
         data = ser.readline().decode().strip()  # Read data from serial port
         print(data)
-        if data == 'CLICKED':  # If the input is 1, simulate a left mouse click
+        if data == 'LEFT':  # If the input is LEFT, simulate a left mouse click
+            pyautogui.click(button='left')
+        if data == 'RIGHT':  # If the input is RIGHT, simulate a right mouse click
             pyautogui.click(button='left')
     if keyboard.is_pressed("ctrl"):
         ser.close
