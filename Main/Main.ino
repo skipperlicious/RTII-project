@@ -68,12 +68,12 @@ void setup() {
     Serial.begin(38400);
 
     // initialize device
-    Serial.println("Initializing I2C devices...");
+    //Serial.println("Initializing I2C devices...");
     accelgyro.initialize();
 
     // verify connection
-    Serial.println("Testing device connections...");
-    Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+    //Serial.println("Testing device connections...");
+    //Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
 
     analog4.setAnalogResolution(16000);
     analog4.setSnapMultiplier(0.0001);
@@ -93,8 +93,8 @@ void loop() {
     // update the ResponsiveAnalogRead object every loop
     int reading = ax;
     analog4.update(reading);
-    Serial.println(analog4.getValue());
-    Serial.println("DEBUG");
+    //Serial.println(analog4.getValue());
+    //Serial.println("DEBUG");
     Serial.println(percent_tilt);
     // blink LED to indicate activity
     blinkState = !blinkState;
