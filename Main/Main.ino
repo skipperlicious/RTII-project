@@ -95,6 +95,7 @@ void loop() {
     analog4.update(reading);
     Serial.println(analog4.getValue());
     Serial.println("DEBUG");
+    Serial.println(percent_tilt);
     // blink LED to indicate activity
     blinkState = !blinkState;
     digitalWrite(LED_PIN, blinkState);
@@ -103,14 +104,14 @@ void loop() {
 void calcTilt() 
 {
     //float func(float percent_tilt);
-    if(ax < 180.0)
+    if(ax < 16000.0)
     {
-        percent_tilt = 50.0 / 180.0 * ax;
+        percent_tilt = 50.0 / 8000.0 * ax;
         //Serial.println(percent_tilt);
     } 
     else
     {
-        percent_tilt = 50.0 / 180.0 * ax - 100;
+        percent_tilt = 50.0 / 8000.0 * ax - 100;
     }
 }
 
