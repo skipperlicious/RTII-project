@@ -1,10 +1,11 @@
 #Dowload their names through pip
 import pyautogui
 import keyboard
-import time
+
 #Download pyserial through pip
 import serial
 import serial.tools.list_ports
+import time
 
 programRunning = True
 
@@ -28,6 +29,7 @@ choice = int(input("Choose a port (1-{}): ".format(len(ports))))
 print("Press 'ctrl' to terminate")
 pyautogui.moveTo(screenSizeX/2, screenSizeY/2)  # moves mouse to X of 100, Y of 200.
 
+
 # Set the serial port based on the user's choice
 ser = serial.Serial(ports[choice-1].device, 38400)
 
@@ -48,6 +50,7 @@ while programRunning:
     if ser.in_waiting > 0:  # Check if there is new data available on the serial port
         data = ser.readline().decode().strip()  # Read data from serial port
         print(data)
+
         abs(float(data))
         newPercent = float(data) * 0.01
         y = "{:.3f}".format(newPercent)
@@ -61,17 +64,17 @@ while programRunning:
         #pyautogui.moveTo(screenSizeX, screenSizeY/2)  # moves mouse to X of 100, Y of 200.
         pyautogui.moveRel(mousePosX, 0)  # moves mouse to X of 100, Y of 200.
 
-       
-
         add_value_to_rolling_array(mousePosX)
 
         average = get_rolling_array_average()
         print(average)
 
-        if data == 'LEFT':  # If the input is LEFT, simulate a left mouse click
-            pyautogui.click(button='left')
-        if data == 'RIGHT':  # If the input is RIGHT, simulate a right mouse click
-            pyautogui.click(button='left')
+        if data == '1':  # If the input is 1, simulate a left mouse click
+            pyautogui.click()
+        if data == '2':  # If the input is 3, simulate a right mouse click
+            pyautogui.click(button='right')
+        if data == '3':  # If the input is 2, simulate a double left-click
+            pyautogui.doubleClick()
     if keyboard.is_pressed("ctrl"):
         ser.close
         print("Terminating...")

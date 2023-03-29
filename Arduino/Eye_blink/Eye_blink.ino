@@ -18,25 +18,25 @@ void loop() {
   if (stateIR == 0) {
     if (millis() - lastLeftPrintTime > delayTime) {
       if (leftCounter == 1) {
-        Serial.println("DOUBLELEFT"); // print "DOUBLELEFT" if LEFT is pressed twice within 500ms
-        leftCounter = 0; // reset leftCounter after printing "DOUBLELEFT"
+        Serial.println(3); // print "3" if LEFT is pressed twice within 500ms
+        leftCounter = 0; // reset leftCounter after printing "3"
       } else {
-        Serial.println("LEFT");
+        Serial.println(1);
         leftCounter = 1; // increment leftCounter if "LEFT" is pressed
       }
       lastLeftPrintTime = millis();
     }
   } else {
-    Serial.println("RELEASED");
+    Serial.println(0);
     leftCounter = 0; // reset leftCounter if "LEFT" is released
   }
 
   if (stateIR2 == 0) {
     if (millis() - lastRightPrintTime > delayTime) {
-      Serial.println("RIGHT");
+      Serial.println(2); // RIGHT click
       lastRightPrintTime = millis();
     }
   } else {
-    Serial.println("RELEASED");
+    Serial.println(0);
   }
 }
