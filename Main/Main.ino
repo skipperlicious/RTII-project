@@ -57,11 +57,18 @@ float stillMargin = 5.0;
 
 ResponsiveAnalogRead analog4(A4, true);
 
-int LED_PIN 13
+#define LED_PIN 13
 bool blinkState = false;
 
-int stateIR = digitalRead(D2);
-int stateIR2 = digitalRead(D3);
+int D2 = 2;
+int D3 = 3;
+int lastLeftPrintTime = 0;
+int lastRightPrintTime = 0;
+int delayTime = 500; // changed delay time to 500ms
+int leftCounter = 0;
+
+int clickValL = 0;
+int clickValR = 0;
 
 String data;
 
@@ -90,14 +97,62 @@ void setup() {
     pinMode(D2, INPUT);
     pinMode(D3, INPUT);
 
-    int clickVal = 0;
-}
+    
+
+    int lastLeftPrintTime = 0;
+    int lastRightPrintTime = 0;
+    int delayTime = 500; // changed delay time to 500ms
+    int leftCounter = 0;
+  }
 
 void loop() {
-
+  int stateIR = digitalRead(D2);
+  int stateIR2 = digitalRead(D3);
+  /*
+  Serial.print("STATES 1: ");
+  Serial.print(stateIR);
+  Serial.print(" ");
+  Serial.print("STATE 2: ");
+  Serial.print(stateIR2);
+  Serial.println("\n");
+  */
     calcXTilt();
-    checkBlink();
+    if (stateIR == 0) {
+            if (millis() - lastLeftPrintTime > delayTime) {
+            if (leftCounter == 1) {
+              clickValL = 3;
+                //Serial.println(clickVal); // print "3" if LEFT is pressed twice within 500ms
+                
+                leftCounter = 0; // reset leftCounter after printing "3"
+            } else {
+               clickValL = 1;
+                //Serial.println(clickVal);
+                
+                leftCounter = 1; // increment leftCounter if "LEFT" is pressed
+            }
+            lastLeftPrintTime = millis();
+            }
+        } else {
+          clickValL = 0;
+            //Serial.println(0);
+            
+            leftCounter = 0; // reset leftCounter if "LEFT" is released
+        }
 
+        if (stateIR2 == 0) {
+            if (millis() - lastRightPrintTime > delayTime) {
+              clickValR = 2;
+            //Serial.println(clickVal); // RIGHT click
+            
+            lastRightPrintTime = millis();
+            }
+        } else {
+          clickValR = 0;
+            //Serial.println(0);
+            
+        }
+     
+     
     // read raw accel/gyro measurements from device
     accelgyro.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &mx, &my, &mz);
 
@@ -119,12 +174,19 @@ void loop() {
       y_percent_tilt = 0;
       }
     }
-    Serial.println(x_percent_tilt);
-    Serial.println(y_percent_tilt);
+    //Serial.println(x_percent_tilt);
+    //Serial.println(y_percent_tilt);
     // blink LED to indicate activity
     blinkState = !blinkState;
     digitalWrite(LED_PIN, blinkState);
-    delay(400);
+    String string1 = String(clickValL);
+    String string2 = String(clickValR);
+     String string3 = String(x_percent_tilt);
+     String string4 = String(y_percent_tilt);
+     
+     data = string1 + ',' + string2 + ',' + string3 + ',' + string4;
+    Serial.println(data);
+    delay(300);
 }
 
     void calcXTilt() 
@@ -147,42 +209,6 @@ void loop() {
         {
             y_percent_tilt = 50.0 / 8000.0 * ay - 100;
         }
-
-    void checkBlink()
-    {
-        if (stateIR == 0) {
-            if (millis() - lastLeftPrintTime > delayTime) {
-            if (leftCounter == 1) {
-                Serial.println(3); // print "3" if LEFT is pressed twice within 500ms
-                clickVal = 3;
-                leftCounter = 0; // reset leftCounter after printing "3"
-            } else {
-                Serial.println(1);
-                clickVal = 1;
-                leftCounter = 1; // increment leftCounter if "LEFT" is pressed
-            }
-            lastLeftPrintTime = millis();
-            }
-        } else {
-            Serial.println(0);
-            clickVal = 0;
-            leftCounter = 0; // reset leftCounter if "LEFT" is released
-        }
-
-        if (stateIR2 == 0) {
-            if (millis() - lastRightPrintTime > delayTime) {
-            Serial.println(2); // RIGHT click
-            clickVal = 0;
-            lastRightPrintTime = millis();
-            }
-        } else {
-            Serial.println(0);
-            clickVal = 0;
-        }
     }
-    void putStuffTogether()
-    {
-        data = clickVal + ',' + x_percent_tilt + ',' + y_percent_tilt;
-    }
-}
+
 
