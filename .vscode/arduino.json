@@ -3,5 +3,5 @@
     "board": "arduino:avr:nano",
     "programmer": "avrispmkii",
     "sketch": "Main\\Main.ino",
-    "port": "COM9"
+    "port": "COM8"
 }

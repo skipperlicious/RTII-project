@@ -50,8 +50,10 @@ int16_t ax, ay, az;
 int16_t gx, gy, gz;
 int16_t mx, my, mz;
 
-float percent_tilt;
+float x_percent_tilt;
+float y_percent_tilt;
 
+float stillMargin = 5.0;
 
 ResponsiveAnalogRead analog4(A4, true);
 
@@ -84,34 +86,56 @@ void setup() {
 
 void loop() {
 
-    calcTilt();
+    calcXTilt();
 
     // read raw accel/gyro measurements from device
     accelgyro.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &mx, &my, &mz);
 
     // read from your ADC
     // update the ResponsiveAnalogRead object every loop
-    int reading = ax;
-    analog4.update(reading);
+    int xReading = ax;
+    int yReading = ay;
+    analog4.update(xReading);
+    analog4.update(yReading);
     //Serial.println(analog4.getValue());
     //Serial.println("DEBUG");
-    Serial.println(percent_tilt);
+    
+
+    if(x_percent_tilt <= stillMargin && x_percent_tilt >= -stillMargin)
+    {
+      if(y_percent_tilt <= stillMargin && y_percent_tilt >= -stillMargin)
+      {
+      x_percent_tilt = 0;
+      y_percent_tilt = 0;
+      }
+    }
+    Serial.println(x_percent_tilt);
+    Serial.println(y_percent_tilt);
     // blink LED to indicate activity
     blinkState = !blinkState;
     digitalWrite(LED_PIN, blinkState);
+    delay(400);
 }
 
-void calcTilt() 
+void calcXTilt() 
 {
-    //float func(float percent_tilt);
+    //Calculate the x and y axis tilt
     if(ax < 16000.0)
     {
-        percent_tilt = 50.0 / 8000.0 * ax;
-        //Serial.println(percent_tilt);
+        x_percent_tilt = 50.0 / 8000.0 * ax;
     } 
     else
     {
-        percent_tilt = 50.0 / 8000.0 * ax - 100;
+        x_percent_tilt = 50.0 / 8000.0 * ax - 100;
+    }
+
+    if(ay < 16000.0)
+    {
+        y_percent_tilt = 50.0 / 8000.0 * ay;
+    } 
+    else
+    {
+        y_percent_tilt = 50.0 / 8000.0 * ay - 100;
     }
 }
 
