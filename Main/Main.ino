@@ -57,8 +57,13 @@ float stillMargin = 5.0;
 
 ResponsiveAnalogRead analog4(A4, true);
 
-#define LED_PIN 13
+int LED_PIN 13
 bool blinkState = false;
+
+int stateIR = digitalRead(D2);
+int stateIR2 = digitalRead(D3);
+
+String data;
 
 void setup() {
     // join I2C bus (I2Cdev library doesn't do this automatically)
@@ -82,11 +87,16 @@ void setup() {
     
     // configure Arduino LED for
     pinMode(LED_PIN, OUTPUT);
+    pinMode(D2, INPUT);
+    pinMode(D3, INPUT);
+
+    int clickVal = 0;
 }
 
 void loop() {
 
     calcXTilt();
+    checkBlink();
 
     // read raw accel/gyro measurements from device
     accelgyro.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &mx, &my, &mz);
@@ -117,25 +127,62 @@ void loop() {
     delay(400);
 }
 
-void calcXTilt() 
-{
-    //Calculate the x and y axis tilt
-    if(ax < 16000.0)
+    void calcXTilt() 
     {
-        x_percent_tilt = 50.0 / 8000.0 * ax;
-    } 
-    else
-    {
-        x_percent_tilt = 50.0 / 8000.0 * ax - 100;
-    }
+        //Calculate the x and y axis tilt
+        if(ax < 16000.0)
+        {
+            x_percent_tilt = 50.0 / 8000.0 * ax;
+        } 
+        else
+        {
+            x_percent_tilt = 50.0 / 8000.0 * ax - 100;
+        }
 
-    if(ay < 16000.0)
+        if(ay < 16000.0)
+        {
+            y_percent_tilt = 50.0 / 8000.0 * ay;
+        } 
+        else
+        {
+            y_percent_tilt = 50.0 / 8000.0 * ay - 100;
+        }
+
+    void checkBlink()
     {
-        y_percent_tilt = 50.0 / 8000.0 * ay;
-    } 
-    else
+        if (stateIR == 0) {
+            if (millis() - lastLeftPrintTime > delayTime) {
+            if (leftCounter == 1) {
+                Serial.println(3); // print "3" if LEFT is pressed twice within 500ms
+                clickVal = 3;
+                leftCounter = 0; // reset leftCounter after printing "3"
+            } else {
+                Serial.println(1);
+                clickVal = 1;
+                leftCounter = 1; // increment leftCounter if "LEFT" is pressed
+            }
+            lastLeftPrintTime = millis();
+            }
+        } else {
+            Serial.println(0);
+            clickVal = 0;
+            leftCounter = 0; // reset leftCounter if "LEFT" is released
+        }
+
+        if (stateIR2 == 0) {
+            if (millis() - lastRightPrintTime > delayTime) {
+            Serial.println(2); // RIGHT click
+            clickVal = 0;
+            lastRightPrintTime = millis();
+            }
+        } else {
+            Serial.println(0);
+            clickVal = 0;
+        }
+    }
+    void putStuffTogether()
     {
-        y_percent_tilt = 50.0 / 8000.0 * ay - 100;
+        data = clickVal + ',' + x_percent_tilt + ',' + y_percent_tilt;
     }
 }
 
