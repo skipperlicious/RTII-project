@@ -106,29 +106,22 @@ while programRunning:
 
         lock_time = 0  # Initialize the lock time to 0
 
-        if input1 != prev_input1:
-            if input1 == 1:
-                if time.time() - lock_time > 0.75:
-                    pyautogui.click(button='left')
-                    lock_time = time.time()
-            elif input1 == 3:
-                if time.time() - lock_time > 0.75:
-                    pyautogui.doubleClick()
-                    lock_time = time.time()
-
-        if input2 != prev_input2:
-            if input2 == 2:
-                if time.time() - lock_time > 0.75:
-                    pyautogui.click(button='right')
-                    lock_time = time.time()
-
-        if input3 != prev_input3:
-            # Handle input 3 here
-            pass
-
-        prev_input1 = input1
-        prev_input2 = input2
-        prev_input3 = input3
+        if int(input1) == 1:  # If the input is LEFT, simulate a left mouse click
+            if time.time() - lock_time > interval:  # Check if enough time has elapsed since the last output
+                pyautogui.click(button='left')
+                lock_time = time.time()  # Update the lock time to the current time
+        if int(input2) == 2:  # If the input is RIGHT, simulate a right mouse click
+            if time.time() - lock_time > interval:  # Check if enough time has elapsed since the last output
+                pyautogui.click(button='right')
+                lock_time = time.time()  # Update the lock time to the current time
+        if int(input1) == 3:  # If the input is RIGHT, simulate a double click
+            if time.time() - lock_time > interval:  # Check if enough time has elapsed since the last output
+                pyautogui.doubleClick()
+                lock_time = time.time()  # Update the lock time to the current time
+                delta_time = time.time() - start_time
+                if(left_click_is_dormant and delta_time <= interval):
+                    start_time = time.time()
+                    left_click_is_dormant = False
 
 
 
