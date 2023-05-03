@@ -17,7 +17,7 @@ newPercentY = 0.0
 positiveSideX = screenSizeX/2
 positiveSideY = screenSizeY/2
 
-interval = 1
+interval = 3
 
 start_time = time.time()
 
@@ -118,10 +118,7 @@ while programRunning:
             if time.time() - lock_time > interval:  # Check if enough time has elapsed since the last output
                 pyautogui.doubleClick()
                 lock_time = time.time()  # Update the lock time to the current time
-                delta_time = time.time() - start_time
-                if(left_click_is_dormant and delta_time <= interval):
-                    start_time = time.time()
-                    left_click_is_dormant = False
+
 
 
 
