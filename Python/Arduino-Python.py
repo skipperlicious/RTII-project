@@ -36,6 +36,8 @@ ser = serial.Serial(ports[choice-1].device, 38400)
 rolling_array_x = []
 rolling_array_y = []
 
+pyautogui.FAILSAFE = False
+
 def add_value_to_rolling_array_x(value):
     rolling_array_x.append(value)
     if len(rolling_array_x) > 5:
@@ -65,28 +67,30 @@ while programRunning:
         input1, input2, input3, input4 = data.split(",")
         print(input1, input2, input3, input4)
         abs(float(input3))
-        newPercentX = float(input3) * 0.01
+        newPercentX = float(input3) * 0.0001
         y = "{:.3f}".format(newPercentX)
 
         abs(float(input4))
-        newPercentY = float(input4) * 0.01
+        newPercentY = float(input4) * 0.0001
         y2 = "{:.3f}".format(newPercentY)
         
         mousePosX = positiveSideX * float(y)
-        print(newPercentX)
-        print(mousePosX)
+        #print(newPercentX)
+        #print(mousePosX)
 
         mousePosY = positiveSideY * float(y2)
-        print(newPercentY)
-        print(mousePosY)
+        #print(newPercentY)
+        #print(mousePosY)
+        
+        #print('END')
+        #print('\n')
+        
+        #pyautogui.moveTo(screenSizeX, screenSizeY/2, _pause = False)  # moves mouse to X of 100, Y of 200.
+        pyautogui.moveRel(mousePosX, 0, _pause = False)  # moves mouse to X of 100, Y of 200.
+        pyautogui.moveRel(0, mousePosY, _pause = False)  # moves mouse to X of 100, Y of 200.
 
-        print('END')
-        print('\n')
-        #pyautogui.moveTo(screenSizeX, screenSizeY/2)  # moves mouse to X of 100, Y of 200.
-        pyautogui.moveRel(mousePosX, 0)  # moves mouse to X of 100, Y of 200.
-        pyautogui.moveRel(mousePosY, 0)  # moves mouse to X of 100, Y of 200.
-       
-
+        
+        
         add_value_to_rolling_array_x(mousePosX)
 
         average_x = get_rolling_array_average_x()
@@ -97,11 +101,11 @@ while programRunning:
         average_y = get_rolling_array_average_y()
         print(average_y)
 
-        if data == '1':  # If the input is LEFT, simulate a left mouse click
+        if int(input1) == 1 :  # If the input is LEFT, simulate a left mouse click
             pyautogui.click(button='left')
-        if data == '2':  # If the input is RIGHT, simulate a right mouse click
+        if int(input2) == 2 :  # If the input is RIGHT, simulate a right mouse click
             pyautogui.click(button='right')
-        if data == '3':  # If the input is RIGHT, simulate a right mouse click
+        if int(input1) == 3 :  # If the input is RIGHT, simulate a right mouse click
             pyautogui.doubleClick()
     if keyboard.is_pressed("ctrl"):
         ser.close

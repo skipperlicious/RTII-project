@@ -186,7 +186,7 @@ void loop() {
      
      data = string1 + ',' + string2 + ',' + string3 + ',' + string4;
     Serial.println(data);
-    delay(300);
+    //delay(300);
 }
 
     void calcXTilt() 
