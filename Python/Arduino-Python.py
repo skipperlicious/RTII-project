@@ -17,6 +17,8 @@ newPercentY = 0.0
 positiveSideX = screenSizeX/2
 positiveSideY = screenSizeY/2
 
+interval = 1
+
 start_time = time.time()
 
 # Get a list of active ports
@@ -37,6 +39,7 @@ rolling_array_x = []
 rolling_array_y = []
 
 pyautogui.FAILSAFE = False
+pyautogui.PAUSE = False
 
 def add_value_to_rolling_array_x(value):
     rolling_array_x.append(value)
@@ -101,12 +104,27 @@ while programRunning:
         average_y = get_rolling_array_average_y()
         print(average_y)
 
-        if int(input1) == 1 :  # If the input is LEFT, simulate a left mouse click
-            pyautogui.click(button='left')
-        if int(input2) == 2 :  # If the input is RIGHT, simulate a right mouse click
-            pyautogui.click(button='right')
-        if int(input1) == 3 :  # If the input is RIGHT, simulate a right mouse click
-            pyautogui.doubleClick()
+        lock_time = 0  # Initialize the lock time to 0
+
+        if int(input1) == 1:  # If the input is LEFT, simulate a left mouse click
+            if time.time() - lock_time > interval:  # Check if enough time has elapsed since the last output
+                pyautogui.click(button='left')
+                lock_time = time.time()  # Update the lock time to the current time
+        if int(input2) == 2:  # If the input is RIGHT, simulate a right mouse click
+            if time.time() - lock_time > interval:  # Check if enough time has elapsed since the last output
+                pyautogui.click(button='right')
+                lock_time = time.time()  # Update the lock time to the current time
+        if int(input1) == 3:  # If the input is RIGHT, simulate a double click
+            if time.time() - lock_time > interval:  # Check if enough time has elapsed since the last output
+                pyautogui.doubleClick()
+                lock_time = time.time()  # Update the lock time to the current time
+                delta_time = time.time() - start_time
+                if(left_click_is_dormant and delta_time <= interval):
+                    start_time = time.time()
+                    left_click_is_dormant = False
+
+
+
     if keyboard.is_pressed("ctrl"):
         ser.close
         print("Terminating...")
