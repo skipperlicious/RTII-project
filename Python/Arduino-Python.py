@@ -5,6 +5,7 @@ import time
 #Download pyserial through pip
 import serial
 import serial.tools.list_ports
+import dataclasses
 
 programRunning = True
 
@@ -35,33 +36,20 @@ pyautogui.moveTo(screenSizeX/2, screenSizeY/2)  # moves mouse to X of 100, Y of 
 # Set the serial port based on the user's choice
 ser = serial.Serial(ports[choice-1].device, 38400)
 
+
+
 rolling_array_x = []
 rolling_array_y = []
+rolling_array_input1 = []
+rolling_array_input2 = []
+rolling_array_input3 = []
 
 pyautogui.FAILSAFE = False
 pyautogui.PAUSE = False
 
-def add_value_to_rolling_array_x(value):
-    rolling_array_x.append(value)
-    if len(rolling_array_x) > 5:
-        rolling_array_x.pop(0)
+counter = 0
+maxCount = 30
 
-def get_rolling_array_average_x():
-    if len(rolling_array_x) == 0:
-        return None
-    else:
-        return sum(rolling_array_x) / len(rolling_array_x)
-
-def add_value_to_rolling_array_y(value):
-    rolling_array_y.append(value)
-    if len(rolling_array_y) > 5:
-        rolling_array_y.pop(0)
-
-def get_rolling_array_average_y():
-    if len(rolling_array_y) == 0:
-        return None
-    else:
-        return sum(rolling_array_y) / len(rolling_array_y)
     
 while programRunning:
     if ser.in_waiting > 0:  # Check if there is new data available on the serial port
@@ -94,44 +82,27 @@ while programRunning:
 
         
         
-        add_value_to_rolling_array_x(mousePosX)
-
-        average_x = get_rolling_array_average_x()
-        print(average_x)
-
-        add_value_to_rolling_array_y(mousePosY)
-
-        average_y = get_rolling_array_average_y()
-        print(average_y)
+        
+        
 
         lock_time = 0  # Initialize the lock time to 0
 
-        if input1 != prev_input1:
-            if input1 == 1:
-                if time.time() - lock_time > 0.75:
-                    pyautogui.click(button='left')
-                    lock_time = time.time()
-            elif input1 == 3:
-                if time.time() - lock_time > 0.75:
-                    pyautogui.doubleClick()
-                    lock_time = time.time()
-
-        if input2 != prev_input2:
-            if input2 == 2:
-                if time.time() - lock_time > 0.75:
-                    pyautogui.click(button='right')
-                    lock_time = time.time()
-
-        if input3 != prev_input3:
-            # Handle input 3 here
-            pass
-
-        prev_input1 = input1
-        prev_input2 = input2
-        prev_input3 = input3
-
-
-
+        if int(input1) == 1:  # If the input is LEFT, simulate a left mouse click
+            if time.time() - lock_time > interval:  # Check if enough time has elapsed since the last output
+                pyautogui.click(button='left')
+                lock_time = time.time()  # Update the lock time to the current time
+        if int(input2) == 2:  # If the input is RIGHT, simulate a right mouse click
+            if time.time() - lock_time > interval:  # Check if enough time has elapsed since the last output
+                pyautogui.click(button='right')
+                lock_time = time.time()  # Update the lock time to the current time
+        if int(input1) == 3:  # If the input is RIGHT, simulate a double click
+            if time.time() - lock_time > interval:  # Check if enough time has elapsed since the last output
+                pyautogui.doubleClick()
+                lock_time = time.time()  # Update the lock time to the current time
+                delta_time = time.time() - start_time
+                if(delta_time <= interval):
+                    start_time = time.time()
+        
     if keyboard.is_pressed("ctrl"):
         ser.close
         print("Terminating...")

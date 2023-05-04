@@ -66,6 +66,13 @@ int lastLeftPrintTime = 0;
 int lastRightPrintTime = 0;
 int delayTime = 500; // changed delay time to 500ms
 int leftCounter = 0;
+int clickVal;
+
+bool ableToPrint;
+int counter;
+int lastPrintCheckTime;
+int printInterval = 5000;
+int prev;
 
 int clickValL = 0;
 int clickValR = 0;
@@ -101,7 +108,7 @@ void setup() {
 
     int lastLeftPrintTime = 0;
     int lastRightPrintTime = 0;
-    int delayTime = 500; // changed delay time to 500ms
+    int delayTime = 1000; // changed delay time to 500ms
     int leftCounter = 0;
   }
 
@@ -116,28 +123,36 @@ void loop() {
   Serial.print(stateIR2);
   Serial.println("\n");
   */
+
+    
     calcXTilt();
     if (stateIR == 0) {
-            if (millis() - lastLeftPrintTime > delayTime) {
-            if (leftCounter == 1) {
-              clickValL = 3;
-                //Serial.println(clickVal); // print "3" if LEFT is pressed twice within 500ms
-                
-                leftCounter = 0; // reset leftCounter after printing "3"
-            } else {
-               clickValL = 1;
-                //Serial.println(clickVal);
-                
-                leftCounter = 1; // increment leftCounter if "LEFT" is pressed
-            }
-            lastLeftPrintTime = millis();
-            }
-        } else {
-          clickValL = 0;
-            //Serial.println(0);
-            
-            leftCounter = 0; // reset leftCounter if "LEFT" is released
-        }
+            if (millis() - lastLeftPrintTime > delayTime) 
+            {
+              if (leftCounter == 1) 
+              {
+                  
+                  clickValL = 3;
+                    //Serial.println(clickVal); // print "3" if LEFT is pressed twice within 500ms
+                    
+                    leftCounter = 0; // reset leftCounter after printing "3"
+              } else 
+                {
+                  clickValL = 1;
+                    //Serial.println(clickVal);
+                    
+                    leftCounter = 1; // increment leftCounter if "LEFT" is pressed
+                }
+                lastLeftPrintTime = millis();
+              }
+      } 
+      else 
+      {
+            clickValL = 0;
+              //Serial.println(0);
+              
+              leftCounter = 0; // reset leftCounter if "LEFT" is released
+          }
 
         if (stateIR2 == 0) {
             if (millis() - lastRightPrintTime > delayTime) {
@@ -151,7 +166,7 @@ void loop() {
             //Serial.println(0);
             
         }
-     
+
      
     // read raw accel/gyro measurements from device
     accelgyro.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &mx, &my, &mz);
