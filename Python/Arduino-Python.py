@@ -188,13 +188,7 @@ def blink_detector_loop():
 
         #converting image to grayscale
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        '''
-        if happendAgain:
-            happendAgain = False
-        
-        if happendAgain2:
-            happendAgain2 = False
-        '''
+
         #Face detection with dlib
         #detecting faces in the frame 
         faces,_,_ = detector.run(image = frame, upsample_num_times = 0, adjust_threshold = 0.0)
@@ -203,23 +197,10 @@ def blink_detector_loop():
         
             landmarks = predictor(frame, face)
 
-            #-----Step 5: Calculating blink ratio for one eye-----
+            #Calculating blink ratio for one eye
             right_eye_ratio  = get_blink_ratio(left_eye_landmarks, landmarks)
             left_eye_ratio = get_blink_ratio(right_eye_landmarks, landmarks)
             blink_ratio     = (left_eye_ratio + right_eye_ratio) / 2
-
-            '''
-            #print(left_eye_ratio)
-            if left_eye_ratio > BLINK_RATIO_THRESHOLD and happendAgain:
-                 time.sleep(0.5)
-                 if left_eye_ratio > BLINK_RATIO_THRESHOLD and happendAgain:
-                    #Blink detected! Do Something!
-                    cv2.putText(frame,"LEFT BLINKING",(10,50), cv2.FONT_HERSHEY_SIMPLEX,2,(255,255,255),2,cv2.LINE_AA)
-                    print("YOU ARE HOLDING LEFT EYE")
-                    #pyautogui.mouseDown()
-            else:
-                happendAgain = False
-        '''
         
         if left_eye_ratio > BLINK_RATIO_THRESHOLD:
             #Increment the blink counter
@@ -257,50 +238,29 @@ def blink_detector_loop():
 
             # Check if the blink counter has reached 10
             if blink_counter_2 >= 10:
-                # Eye is closed! Do Something!
+                # Eye is closed
                 cv2.putText(frame, "RIGHT EYE CLOSED", (10,50), cv2.FONT_HERSHEY_SIMPLEX,
                             2, (255,255,255), 2, cv2.LINE_AA)
                 pyautogui.click(button='right')
                 print("RIGHT clicked")
                 right_eye_closed = True
                 if not right_mouse_button_pressed:
-                    # Hold down the left mouse button
+                    #Hold down the left mouse button
                     pyautogui.mouseDown(button='right')
                     right_mouse_button_pressed = True
                 else:
-                    # Check if the mouse button is pressed
+                    #Check if the mouse button is pressed
                     pyautogui.PAUSE = hold_duration
                     if right_mouse_button_pressed:
                         # Release the left mouse button
                         pyautogui.mouseUp(button='right')
                         right_mouse_button_pressed = False
-                # Reset the blink counter
+                #Reset the blink counter
                 blink_counter_2 = 0
         else:
-            # Reset the blink counter if the eye is open
+            #Reset the blink counter if the eye is open
             blink_counter_2 = 0
             right_eye_closed = False
-
-            '''
-            if left_eye_ratio > BLINK_RATIO_THRESHOLD and happendAgain != True:
-                #Blink detected! Do Something!
-                cv2.putText(frame,"LEFT BLINKING",(10,50), cv2.FONT_HERSHEY_SIMPLEX,2,(255,255,255),2,cv2.LINE_AA)
-                print("YOU BLINKED LEFT")
-                #pyautogui.click()
-            else:
-                happendAgain = False
-
-
-            if right_eye_ratio > BLINK_RATIO_THRESHOLD:
-                #Blink detected! Do Something!
-                happendAgain2 = True
-                cv2.putText(frame,"RIGHT BLINKING",(10,100), cv2.FONT_HERSHEY_SIMPLEX,2,(255,255,255),2,cv2.LINE_AA)
-                #print("YOU BLINKED RIGHT")
-                #pyautogui.click(button='right')
-            else:
-                happendAgain2 = False
-            '''
-        #cv2.imshow('BlinkDetector', frame)
 
         key = cv2.waitKey(1)
         if key == 27:
